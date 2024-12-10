@@ -4,47 +4,52 @@ const { execSync } = require('child_process');
 
 // Project structure configuration
 const projectStructure = {
-    'src': {
-        'css': ['styles.css'],
-        'js': ['compiler.js', 'console.js', 'storage.js'],
-        'themes': ['light.css', 'dark.css']
+    src: {
+        controllers: ['compilerController.js', 'userController.js'],
+        models: ['compilerModel.js', 'userModel.js'],
+        routes: ['compilerRoutes.js', 'userRoutes.js'],
+        services: ['compilerService.js', 'userService.js'],
+        views: ['index.html', 'error.html']
     },
-    'assets': {
-        'icons': ['favicon.ico', 'logo.png'],
-        'fonts': []
+    assets: {
+        icons: ['favicon.ico', 'logo.png'],
+        fonts: []
     },
-    'lib': [],
-    'docs': ['README.md', 'CONTRIBUTING.md'],
-    'tests': ['compiler.test.js', 'storage.test.js'],
-    'config': ['webpack.config.js', '.eslintrc']
+    lib: [],
+    config: ['dbConfig.js', 'appConfig.js', 'logger.js'],
+    tests: ['compiler.test.js', 'user.test.js'],
+    docs: ['README.md', 'CONTRIBUTING.md']
 };
 
 // Root directory name
-const projectRoot = 'online-js-compiler';
+const projectRoot = 'node-js-compiler';
 
-// Function to create directory and files
+// create directory and files
 function createProjectStructure(root, structure) {
-    // Create root directory
     fs.mkdirSync(root, { recursive: true });
 
-    // Create index.html in root
-    fs.writeFileSync(path.join(root, 'index.html'), `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Online JS Compiler</title>
-    <link rel="stylesheet" href="src/css/styles.css">
-</head>
-<body>
-    <div id="app">
-        <textarea id="code-editor"></textarea>
-        <div id="output"></div>
-        <button id="run-btn">Run Code</button>
-    </div>
-    <script src="src/js/compiler.js"></script>
-</body>
-</html>
+    fs.writeFileSync(path.join(root, 'server.js'), `
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+
+// Import Routes
+const compilerRoutes = require('./src/routes/compilerRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+
+// Use Routes
+app.use('/api/compiler', compilerRoutes);
+app.use('/api/user', userRoutes);
+
+// Root endpoint
+app.get('/', (req, res) => res.sendFile(__dirname + '/src/views/index.html'));
+
+// Start server
+app.listen(PORT, () => {
+    console.log(\`Server running on http://localhost:\${PORT}\`);
+});
     `);
 
     // Recursively create directories and files
@@ -71,18 +76,17 @@ function createProjectStructure(root, structure) {
     const packageJson = {
         name: 'online-js-compiler',
         version: '1.0.0',
-        description: 'Online JavaScript Compiler',
-        main: 'index.html',
+        description: 'Online JavaScript Compiler using Node.js',
+        main: 'server.js',
         scripts: {
-            start: 'webpack serve',
-            build: 'webpack',
+            start: 'node server.js',
             test: 'jest'
         },
-        dependencies: {},
+        dependencies: {
+            express: '^4.0.0'
+        },
         devDependencies: {
-            'webpack': '^5.0.0',
-            'webpack-cli': '^4.0.0',
-            'html-webpack-plugin': '^5.0.0'
+            jest: '^27.0.0'
         }
     };
 
